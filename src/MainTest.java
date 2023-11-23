@@ -5,6 +5,8 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+
+import Exception.ArgsException;
 import Exception.ServerException;
 
 import keyboardinput.Keyboard;
@@ -21,13 +23,25 @@ public class MainTest {
 
 
     public MainTest(String ip, int port) throws IOException{
-        InetAddress addr = InetAddress.getByName(ip); //ip
+    	InetAddress addr = InetAddress.getByName(ip); //ip
         System.out.println("addr = " + addr);
         Socket socket = new Socket(addr, port); //Port
         System.out.println(socket);
 
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());	; // stream con richieste del client
+    }
+    
+    private static MainTest assignArguments(String[] parameters) throws ArgsException, IOException {
+    	if (parameters.length < 2)
+    	{
+    		throw new ArgsException("Inserire Indirizzo IP e Porta come argomenti");
+    	}
+    	
+    	String ip = parameters[0];
+        int port = Integer.parseInt(parameters[1]);
+        
+		return new MainTest(ip,port);
     }
 
     private int menu(){
@@ -97,18 +111,24 @@ public class MainTest {
             throw new ServerException(result);
 
     }
+    
     public static void main(String[] args) {
-        String ip=args[0];
-        int port = Integer.parseInt(args[1]);
-        MainTest main=null;
+    	MainTest main=null;
         try{
-            main=new MainTest(ip,port);
+        	main = assignArguments(args);
+        }
+        catch (ArgsException e) {
+			System.out.println("Errore: " + e.getMessage());
+			return;
+		}
+        catch (NumberFormatException e) {
+        	System.out.println("Errore: La porta logica non è corretta");
+        	return;
         }
         catch (IOException e){
             System.out.println(e);
             return;
         }
-
 
         do{
             int menuAnswer=main.menu();
